@@ -38,3 +38,12 @@ coverage/
 
 .claude/*.local.json
 public/css/output.css
+.mcp.json
+
+# Playwright AI/MCP Agent 暫存檔與本地產物
+.playwright-mcp/
+.vscode/mcp.json
+test-results/
+
+# 第三方 ECPay 官方 skill（獨立 git repo，不納入版控）
+.claude/skills/ecpay/
