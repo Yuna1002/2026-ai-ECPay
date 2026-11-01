@@ -4,7 +4,23 @@
 
 ---
 
-## [Unreleased] - 2026-05-31
+## [Unreleased] - 2026-10-29
+
+### Changed
+
+- **前台全面改版為雜誌排版風**（設計稿：`docs/design/storefront.pen`，桌機 1440 / 手機 390）
+  - 新色票與字體：紙白 `paper`、墨綠黑 `ink`、莖綠 `stem`、牡丹紅 `peony`（唯一強調色）、花粉黃 `pollen`、霧灰 `mist`；標題 Noto Serif TC 900、數字 Fraunces
+  - 首頁：直書封面主標（逐字淡入，遵守 `prefers-reduced-motion`）、本期目錄、每 5 張一組的錯落商品網格、引言跨頁、讀者來信、服務條
+  - 商品頁首字放大、底線式表單、訂單狀態改為色點加文字
+  - 新增 `views/partials/front-footer.ejs`（後台仍沿用 `footer.ejs`）；手機版刊頭加入可開合選單
+  - `header-init.js` 新增全域 `CartBadge`，桌機與手機購物車數量同步更新
+  - 舊色票保留於 `input.css`，後台樣式不受影響
+
+### Fixed
+
+- 預設花圖 `photo-1490750967868-88aa4f44baee` 已失效（破圖），改用可正常載入的圖片
+
+## 2026-05-31
 
 ### Added
 

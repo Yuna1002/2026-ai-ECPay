@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @theme {
+  /* 後台沿用的舊色票（勿刪） */
   --color-rose-primary: #C4727F;
   --color-rose-dark: #A85B67;
   --color-rose-light: #E8A5AE;
@@ -12,10 +13,113 @@
   --color-text-primary: #2C2A28;
   --color-text-secondary: #6B6560;
   --color-text-muted: #9A948E;
+
+  /* 前台雜誌風色票 */
+  --color-paper: #F6F4EF;
+  --color-ink: #1F2421;
+  --color-stem: #3E5641;
+  --color-peony: #B8325A;
+  --color-peony-dark: #962546;
+  --color-pollen: #E9D9A6;
+  --color-mist: #D9DDD6;
+  --color-muted: #6B716C;
+  --color-amber: #9A6416;
+
+  --font-serif-tc: 'Noto Serif TC', serif;
+  --font-sans-tc: 'Noto Sans TC', sans-serif;
+  --font-latin: 'Fraunces', 'Noto Serif TC', serif;
 }
 
 body {
   font-family: 'Noto Sans TC', sans-serif;
   background-color: var(--color-cream);
   color: var(--color-text-primary);
+}
+
+/* ---------- 前台（雜誌排版） ---------- */
+body.front {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
+
+body.front :focus-visible {
+  outline: 2px solid var(--color-peony);
+  outline-offset: 3px;
+}
+
+/* 數字與拉丁字使用 Fraunces，並採等寬數字方便對齊 */
+.num {
+  font-family: var(--font-latin);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* 首頁封面：桌機版直書主標 */
+@media (min-width: 1024px) {
+  .vertical-title {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+  }
+}
+
+/* 主標逐字淡入：全站唯一的自動動畫 */
+.cover-char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.25em);
+  animation: cover-in 0.6s ease-out forwards;
+  animation-delay: calc(var(--i) * 70ms + 150ms);
+}
+
+@keyframes cover-in {
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cover-char {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}
+
+/* 商品描述首字放大 */
+.dropcap::first-letter {
+  float: left;
+  font-family: var(--font-serif-tc);
+  font-weight: 900;
+  font-size: 4.4em;
+  line-height: 0.95;
+  margin: 0.06em 0.12em 0 0;
+  color: var(--color-peony);
+}
+
+/* 底線式輸入框 */
+.field-input {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--color-ink);
+  padding: 0.6rem 0;
+  font-family: var(--font-serif-tc);
+  font-size: 1.125rem;
+  color: var(--color-ink);
+  border-radius: 0;
+}
+
+.field-input::placeholder {
+  color: var(--color-muted);
+}
+
+.field-input:focus {
+  outline: none;
+  border-bottom-width: 2px;
+  border-bottom-color: var(--color-peony);
+}
+
+.field-input.is-invalid {
+  border-bottom: 2px solid var(--color-peony);
+}
+
+[v-cloak] {
+  display: none;
 }

@@ -1,26 +1,37 @@
-<header class="sticky top-0 z-50 bg-white shadow-sm border-b border-rose-bg">
-  <div class="max-w-7xl mx-auto flex items-center justify-between px-4 h-16">
-    <a href="/" class="text-xl font-bold text-rose-primary" style="font-family: 'Noto Serif TC', serif;">
-      花漾生活
+<header class="sticky top-0 z-50 bg-paper">
+  <div class="max-w-[1440px] mx-auto flex items-center justify-between px-4 md:px-8 lg:px-16 h-16 md:h-20">
+    <a href="/" class="flex items-end gap-3.5">
+      <span class="font-serif-tc font-black text-3xl md:text-4xl leading-none text-ink">花漾</span>
+      <span class="hidden md:inline font-latin italic text-[15px] text-muted">Flower Life — 2026 秋季號</span>
     </a>
 
-    <nav class="flex items-center gap-6 text-sm text-text-secondary">
-      <a href="/" class="hover:text-rose-primary transition-colors">商品列表</a>
-      <a href="/cart" class="hover:text-rose-primary transition-colors relative">
-        購物車
-        <span
-          id="cart-badge"
-          class="absolute -top-2 -right-4 bg-rose-primary text-white text-xs rounded-full w-5 h-5 items-center justify-center"
-          style="display: none;"
-        ></span>
+    <nav id="main-nav" class="hidden md:flex items-center gap-9 text-[15px] text-ink">
+      <a href="/#products" class="hover:text-peony transition-colors">本期花束</a>
+      <a id="orders-link" href="/orders" class="hover:text-peony transition-colors" style="display: none;">我的訂單</a>
+      <a href="/cart" class="hover:text-peony transition-colors">
+        購物車<span id="cart-badge" class="num text-peony ml-1.5" style="display: none;"></span>
       </a>
-      <a id="orders-link" href="/orders" class="hover:text-rose-primary transition-colors" style="display: none;">
-        我的訂單
-      </a>
+      <div id="auth-nav" class="flex items-center gap-5 text-sm">
+        <a href="/login" class="border border-ink rounded-full px-5 py-2 hover:bg-ink hover:text-paper transition-colors">登入</a>
+      </div>
     </nav>
 
-    <div id="auth-nav" class="flex items-center gap-4 text-sm">
-      <a href="/login" class="bg-rose-primary text-white px-4 py-1.5 rounded-full hover:bg-rose-dark transition-colors">登入</a>
+    <div class="flex md:hidden items-center gap-4">
+      <a href="/cart" class="flex items-center gap-1 text-ink" aria-label="購物車">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        <span id="cart-badge-mobile" class="num text-peony text-[15px]" style="display: none;"></span>
+      </a>
+      <button id="menu-toggle" type="button" class="text-ink p-1" aria-label="開啟選單" aria-expanded="false" aria-controls="mobile-nav">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
     </div>
   </div>
+
+  <nav id="mobile-nav" class="md:hidden border-t border-mist px-4 pb-5 pt-2 text-ink" hidden>
+    <a href="/#products" class="block py-3 font-serif-tc text-xl font-bold border-b border-mist">本期花束</a>
+    <a id="orders-link-mobile" href="/orders" class="block py-3 font-serif-tc text-xl font-bold border-b border-mist" style="display: none;">我的訂單</a>
+    <a href="/cart" class="block py-3 font-serif-tc text-xl font-bold border-b border-mist">購物車</a>
+    <div id="auth-nav-mobile" class="flex items-center gap-5 pt-4 text-sm"></div>
+  </nav>
+  <div class="h-0.5 bg-ink"></div>
 </header>

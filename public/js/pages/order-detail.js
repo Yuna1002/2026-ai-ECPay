@@ -16,16 +16,21 @@ createApp({
     const paying = ref(false);
 
     const statusMap = {
-      pending: { label: '待付款', cls: 'bg-apricot/20 text-apricot' },
-      paid: { label: '已付款', cls: 'bg-sage/20 text-sage' },
-      failed: { label: '付款失敗', cls: 'bg-red-100 text-red-600' },
+      pending: { label: '待付款', cls: 'text-amber' },
+      paid: { label: '已付款', cls: 'text-stem' },
+      failed: { label: '付款失敗', cls: 'text-peony' },
     };
 
     const paymentMessages = {
-      success: { text: '付款成功！感謝您的購買。', cls: 'bg-sage/10 text-sage border border-sage/20' },
-      failed: { text: '付款失敗，請重試。', cls: 'bg-red-50 text-red-600 border border-red-100' },
-      error: { text: '付款狀態查詢失敗，請聯繫客服確認。', cls: 'bg-apricot/10 text-apricot border border-apricot/20' },
+      success: { text: '付款完成，花藝師開始準備你的花。', cls: 'text-stem' },
+      failed: { text: '付款沒有完成，訂單還保留著。可以再按一次「前往綠界付款」重試。', cls: 'text-peony' },
+      error: { text: '暫時查不到付款結果。請稍後重新整理，或來信 hello@flowerlife.tw 確認。', cls: 'text-amber' },
     };
+
+    function formatDate(value) {
+      const d = new Date(value);
+      return d.getFullYear() + ' 年 ' + (d.getMonth() + 1) + ' 月 ' + d.getDate() + ' 日';
+    }
 
     async function goToEcpay() {
       if (!order.value || paying.value) return;
@@ -66,6 +71,6 @@ createApp({
       }
     });
 
-    return { order, loading, paying, paymentResult, statusMap, paymentMessages, goToEcpay };
+    return { order, loading, paying, paymentResult, statusMap, paymentMessages, formatDate, goToEcpay };
   }
 }).mount('#app');

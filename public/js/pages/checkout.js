@@ -9,6 +9,7 @@ createApp({
     const cartItems = ref([]);
     const form = ref({ recipientName: '', recipientEmail: '', recipientAddress: '' });
     const errors = ref({});
+    const userName = Auth.getUser()?.name || '';
 
     const cartTotal = computed(function () {
       return cartItems.value.reduce(function (sum, item) {
@@ -60,6 +61,6 @@ createApp({
       loading.value = false;
     });
 
-    return { loading, submitting, cartItems, form, errors, cartTotal, submitOrder };
+    return { loading, submitting, cartItems, form, errors, userName, cartTotal, submitOrder };
   }
 }).mount('#app');
