@@ -16,12 +16,12 @@
 
   <div v-else class="flex flex-col lg:flex-row lg:items-start gap-6 lg:gap-16 pt-5 lg:pt-10">
     <div class="flex-1 min-w-0">
-      <p v-if="total < 500" class="bg-pollen px-3.5 lg:px-5 py-3 lg:py-3.5 text-[13px] lg:text-sm text-ink">
-        再買 <span class="num">NT$ {{ (500 - total).toLocaleString() }}</span> 就免運
+      <p v-if="total < 1500" class="bg-pollen px-3.5 lg:px-5 py-3 lg:py-3.5 text-[13px] lg:text-sm text-ink">
+        再買 <span class="num">NT$ {{ (1500 - total).toLocaleString() }}</span> 就享宅配免運
       </p>
       <p v-else class="bg-pollen px-3.5 lg:px-5 py-3 lg:py-3.5 text-[13px] lg:text-sm text-stem flex items-center gap-2">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-        已達 NT$ 500 免運門檻
+        已達 NT$ 1,500 宅配免運門檻
       </p>
 
       <ul>
@@ -62,13 +62,14 @@
           <dd class="num text-ink">NT$ {{ total.toLocaleString() }}</dd>
         </div>
         <div class="flex justify-between">
-          <dt class="text-muted">運費</dt>
-          <dd class="num text-ink">{{ total >= 500 ? '免運' : 'NT$ 150' }}</dd>
+          <dt class="text-muted">宅配運費</dt>
+          <dd class="num text-ink">{{ total >= 1500 ? '免運' : 'NT$ 120' }}</dd>
         </div>
+        <p class="text-xs text-muted">超商取貨 NT$ 60；偏遠地區、當日急件另計，於結帳時計算</p>
       </dl>
       <div class="flex justify-between items-end border-t border-mist mt-4 pt-4">
-        <span class="font-serif-tc font-bold text-ink">總計</span>
-        <span class="num text-peony text-[28px] lg:text-[34px] leading-none">NT$ {{ (total + (total >= 500 ? 0 : 150)).toLocaleString() }}</span>
+        <span class="font-serif-tc font-bold text-ink">預估總計</span>
+        <span class="num text-peony text-[28px] lg:text-[34px] leading-none">NT$ {{ (total + (total >= 1500 ? 0 : 120)).toLocaleString() }}</span>
       </div>
       <button
         type="button"

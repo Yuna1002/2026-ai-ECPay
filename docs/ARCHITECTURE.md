@@ -23,13 +23,15 @@
 │   │   ├── sessionMiddleware.js  # 從 X-Session-Id header 設定 req.sessionId
 │   │   └── errorHandler.js      # Express 全域錯誤處理，過濾 500 訊息防洩漏
 │   ├── utils/
-│   │   └── ecpayHelper.js        # ECPay 工具：CheckMacValue 計算、AIO 建單、QueryTradeInfo 查詢
+│   │   ├── ecpayHelper.js        # ECPay 工具：CheckMacValue 計算、AIO 建單、QueryTradeInfo 查詢
+│   │   └── shipping.js           # 運費計算模組（配送方式、滿額免運、偏遠地區、當日急件）
 │   └── routes/
 │       ├── authRoutes.js         # POST /register, POST /login, GET /profile
 │       ├── productRoutes.js      # GET /api/products（分頁）, GET /api/products/:id
 │       ├── cartRoutes.js         # 購物車 CRUD，內建 dualAuth（JWT 或 session）
 │       ├── orderRoutes.js        # 建立/查詢/訂單，需 JWT
 │       ├── paymentRoutes.js      # ECPay AIO 金流：建單、OrderResultURL、ReturnURL
+│       ├── shippingRoutes.js     # POST /api/shipping/quote 運費試算
 │       ├── adminProductRoutes.js # 後台商品 CRUD，需 JWT + admin role
 │       ├── adminOrderRoutes.js   # 後台訂單查詢，需 JWT + admin role
 │       └── pageRoutes.js         # SSR 頁面路由，使用 EJS layout 雙段渲染
@@ -85,7 +87,8 @@
     ├── auth.test.js
     ├── products.test.js
     ├── cart.test.js
-    ├── orders.test.js
+    ├── orders.test.js            # 含建立訂單運費整合測試與 /api/shipping/quote
+    ├── shipping.test.js          # Shipping 模組單元測試（不碰 DB）
     ├── adminProducts.test.js
     └── adminOrders.test.js
 ```
@@ -102,7 +105,8 @@ node server.js
               │     ├── CREATE TABLE IF NOT EXISTS (5 張表)
               │     ├── seedAdminUser()      ← 若 admin 不存在才插入
               │     ├── seedProducts()       ← 若 products 為空才插入 8 筆
-              │     └── migration：若 orders 缺少 ecpay_trade_no 欄位，自動 ALTER TABLE 補上
+              │     ├── migration：若 orders 缺少 ecpay_trade_no 欄位，自動 ALTER TABLE 補上
+              │     └── migration：補上運費欄位（subtotal、shipping_method、shipping_fee、is_remote_area、is_urgent），舊訂單 subtotal 回填為 total_amount
               ├── app.set('view engine', 'ejs')
               ├── app.use(cors, express.json, express.urlencoded, sessionMiddleware)
               ├── app.use('/api/auth', authRoutes)
@@ -112,6 +116,7 @@ node server.js
               ├── app.use('/api/cart', cartRoutes)
               ├── app.use('/api/orders', orderRoutes)
               ├── app.use('/api/payments', paymentRoutes)
+              ├── app.use('/api/shipping', shippingRoutes)
               ├── app.use('/', pageRoutes)
               ├── 404 handler（API → JSON，頁面 → 404.ejs）
               └── errorHandler（全域 Express 錯誤處理）
@@ -130,7 +135,8 @@ node server.js
 | POST | `/api/cart` | JWT 或 Session | 加入商品至購物車 |
 | PATCH | `/api/cart/:itemId` | JWT 或 Session | 修改購物車商品數量 |
 | DELETE | `/api/cart/:itemId` | JWT 或 Session | 移除購物車商品 |
-| POST | `/api/orders` | JWT | 從購物車建立訂單 |
+| POST | `/api/orders` | JWT | 從購物車建立訂單（含運費計算） |
+| POST | `/api/shipping/quote` | 無 | 運費試算（僅供前台預覽） |
 | GET | `/api/orders` | JWT | 取得自己的訂單列表 |
 | GET | `/api/orders/:id` | JWT | 取得自己的訂單詳情 |
 | PATCH | `/api/orders/:id/pay` | JWT | 模擬付款（success/fail，供開發測試） |
@@ -287,7 +293,12 @@ SQLite pragma：`journal_mode = WAL`、`foreign_keys = ON`
 | `recipient_name` | TEXT | NOT NULL |
 | `recipient_email` | TEXT | NOT NULL |
 | `recipient_address` | TEXT | NOT NULL |
-| `total_amount` | INTEGER | NOT NULL（單位：元，由 price × quantity 加總） |
+| `subtotal` | INTEGER | 商品小計（Σ price × quantity） |
+| `shipping_method` | TEXT | NOT NULL DEFAULT 'home_delivery'（`home_delivery` / `convenience_store`） |
+| `shipping_fee` | INTEGER | NOT NULL DEFAULT 0，運費總額（基本運費 + 附加費） |
+| `is_remote_area` | INTEGER | NOT NULL DEFAULT 0，1 = 偏遠地區 |
+| `is_urgent` | INTEGER | NOT NULL DEFAULT 0，1 = 當日急件 |
+| `total_amount` | INTEGER | NOT NULL（單位：元，= subtotal + shipping_fee；送往 ECPay 的 TotalAmount） |
 | `status` | TEXT | NOT NULL DEFAULT 'pending'，CHECK IN ('pending', 'paid', 'failed') |
 | `ecpay_trade_no` | TEXT | 可 NULL，ECPay 回傳的綠界交易編號（付款成功後寫入） |
 | `created_at` | TEXT | NOT NULL DEFAULT datetime('now') |

@@ -50,6 +50,11 @@ function initializeDatabase() {
       recipient_name TEXT NOT NULL,
       recipient_email TEXT NOT NULL,
       recipient_address TEXT NOT NULL,
+      subtotal INTEGER,
+      shipping_method TEXT NOT NULL DEFAULT 'home_delivery',
+      shipping_fee INTEGER NOT NULL DEFAULT 0,
+      is_remote_area INTEGER NOT NULL DEFAULT 0,
+      is_urgent INTEGER NOT NULL DEFAULT 0,
       total_amount INTEGER NOT NULL,
       status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'paid', 'failed')),
       ecpay_trade_no TEXT,
@@ -170,5 +175,21 @@ const existingCols = db.pragma('table_info(orders)').map(c => c.name);
 if (!existingCols.includes('ecpay_trade_no')) {
   db.exec('ALTER TABLE orders ADD COLUMN ecpay_trade_no TEXT');
 }
+
+// Migration：為既有資料庫補上運費相關欄位
+const shippingColumns = {
+  subtotal: 'INTEGER',
+  shipping_method: "TEXT NOT NULL DEFAULT 'home_delivery'",
+  shipping_fee: 'INTEGER NOT NULL DEFAULT 0',
+  is_remote_area: 'INTEGER NOT NULL DEFAULT 0',
+  is_urgent: 'INTEGER NOT NULL DEFAULT 0',
+};
+for (const [col, def] of Object.entries(shippingColumns)) {
+  if (!existingCols.includes(col)) {
+    db.exec(`ALTER TABLE orders ADD COLUMN ${col} ${def}`);
+  }
+}
+// 舊訂單沒有運費，小計即為總額
+db.exec('UPDATE orders SET subtotal = total_amount WHERE subtotal IS NULL');
 
 module.exports = db;

@@ -10,10 +10,11 @@
 | 測試檔案 | 測試對象 | 主要測試案例 |
 |---------|---------|------------|
 | `tests/setup.js` | 輔助函式 | — |
+| `tests/shipping.test.js` | `src/utils/shipping.js`（純單元測試） | 宅配 120、超商 60、小計 1,499／1,500、偏遠 +200、急件 +250、多項附加費、滿額免運＋附加費、偏遠關鍵字、參數驗證 |
 | `tests/auth.test.js` | `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/profile` | 成功註冊、重複 email、成功登入、密碼錯誤、取得 profile |
 | `tests/products.test.js` | `GET /api/products`, `GET /api/products/:id` | 商品列表、分頁、單一商品、404 |
 | `tests/cart.test.js` | `GET/POST/PATCH/DELETE /api/cart` | 遊客模式增刪改查、會員模式加入、無效商品 |
-| `tests/orders.test.js` | `POST/GET/PATCH /api/orders` | 建立訂單、空購物車、未認證、訂單列表、訂單詳情、404 |
+| `tests/orders.test.js` | `POST/GET/PATCH /api/orders`、`POST /api/shipping/quote` | 建立訂單、空購物車、未認證、訂單列表、訂單詳情、404、運費與總額正確、非法 shippingMethod／isUrgent、運費試算 |
 | `tests/adminProducts.test.js` | `GET/POST/PUT/DELETE /api/admin/products` | CRUD 流程、一般使用者被拒、未認證被拒 |
 | `tests/adminOrders.test.js` | `GET /api/admin/orders`, `GET /api/admin/orders/:id` | 訂單列表、status 篩選、訂單詳情、一般使用者被拒 |
 
@@ -22,7 +23,8 @@
 測試檔案必須**依序**執行（`fileParallelism: false`），順序由 `vitest.config.js` 中的 `sequence.files` 定義：
 
 ```
-auth.test.js
+shipping.test.js         ← 純函式，不依賴 DB，放最前面
+→ auth.test.js
   → products.test.js
     → cart.test.js
       → orders.test.js   ← 依賴 cart.test.js 在同 DB 中有商品存在

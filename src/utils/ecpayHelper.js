@@ -66,8 +66,11 @@ function merchantTradeNoToOrderNo(mtn) {
   return mtn.replace(/^(ORD)(\d{8})(\w{5})$/, '$1-$2-$3');
 }
 
-function buildItemName(items) {
-  const name = items.map(i => `${i.product_name} x${i.quantity}`).join('#');
+function buildItemName(items, shippingFee = 0) {
+  const parts = items.map(i => `${i.product_name} x${i.quantity}`);
+  // 運費列入商品明細，讓綠界付款頁的明細與 TotalAmount 一致
+  if (shippingFee > 0) parts.push(`運費 x1`);
+  const name = parts.join('#');
   return name.length > 200 ? name.slice(0, 200) : name;
 }
 
@@ -80,7 +83,7 @@ function buildAioCheckout(order, items, baseUrl) {
     PaymentType:       'aio',
     TotalAmount:       String(order.total_amount),
     TradeDesc:         '花卉電商訂單',
-    ItemName:          buildItemName(items),
+    ItemName:          buildItemName(items, order.shipping_fee),
     ReturnURL:         `${baseUrl}/api/payments/ecpay-notify`,
     OrderResultURL:    `${baseUrl}/api/payments/ecpay-result`,
     ClientBackURL:     `${baseUrl}/orders/${order.id}`,

@@ -26,7 +26,36 @@
         <label for="recipient-address" class="block text-[13px] lg:text-sm font-medium text-ink mb-1">收件地址</label>
         <input id="recipient-address" v-model="form.recipientAddress" type="text" autocomplete="street-address" placeholder="例：台北市大安區復興南路一段 100 號" class="field-input" :class="{ 'is-invalid': errors.recipientAddress }" />
         <p v-if="errors.recipientAddress" class="text-peony text-xs lg:text-[13px] mt-2">{{ errors.recipientAddress }}</p>
+        <p class="text-muted text-xs lg:text-[13px] mt-2">澎湖、金門、馬祖、綠島、蘭嶼、小琉球等偏遠地區加收 NT$ 200</p>
       </div>
+
+      <fieldset>
+        <legend class="block text-[13px] lg:text-sm font-medium text-ink mb-3">配送方式</legend>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <label class="flex-1 flex items-start gap-3 border px-4 py-3 cursor-pointer transition-colors" :class="form.shippingMethod === 'home_delivery' ? 'border-ink' : 'border-mist'">
+            <input type="radio" value="home_delivery" v-model="form.shippingMethod" class="mt-1 accent-peony" />
+            <span>
+              <span class="block text-sm text-ink font-medium">宅配到府</span>
+              <span class="block text-xs text-muted mt-0.5">NT$ 120，商品滿 NT$ 1,500 免運</span>
+            </span>
+          </label>
+          <label class="flex-1 flex items-start gap-3 border px-4 py-3 cursor-pointer transition-colors" :class="form.shippingMethod === 'convenience_store' ? 'border-ink' : 'border-mist'">
+            <input type="radio" value="convenience_store" v-model="form.shippingMethod" class="mt-1 accent-peony" />
+            <span>
+              <span class="block text-sm text-ink font-medium">超商取貨</span>
+              <span class="block text-xs text-muted mt-0.5">NT$ 60（不適用滿額免運）</span>
+            </span>
+          </label>
+        </div>
+      </fieldset>
+
+      <label class="flex items-start gap-3 cursor-pointer">
+        <input type="checkbox" v-model="form.isUrgent" class="mt-1 accent-peony" />
+        <span>
+          <span class="block text-sm text-ink font-medium">當日急件</span>
+          <span class="block text-xs text-muted mt-0.5">加收 NT$ 250</span>
+        </span>
+      </label>
     </form>
 
     <aside class="lg:w-[400px] shrink-0 bg-white border-t-4 border-ink p-5 lg:p-8 lg:sticky lg:top-28">
@@ -43,13 +72,23 @@
           <dd class="num text-ink">NT$ {{ cartTotal.toLocaleString() }}</dd>
         </div>
         <div class="flex justify-between">
-          <dt class="text-muted">運費</dt>
-          <dd class="num text-ink">{{ cartTotal >= 500 ? '免運' : 'NT$ 150' }}</dd>
+          <dt class="text-muted">{{ form.shippingMethod === 'convenience_store' ? '超商取貨' : '宅配運費' }}</dt>
+          <dd v-if="shipping" class="num text-ink">{{ shipping.isFreeShipping ? '免運' : 'NT$ ' + shipping.baseFee.toLocaleString() }}</dd>
+          <dd v-else-if="shippingError" class="text-peony">無法計算運費</dd>
+          <dd v-else class="text-muted">計算中…</dd>
+        </div>
+        <div v-if="shipping && shipping.remoteSurcharge" class="flex justify-between">
+          <dt class="text-muted">偏遠地區加收</dt>
+          <dd class="num text-ink">NT$ {{ shipping.remoteSurcharge.toLocaleString() }}</dd>
+        </div>
+        <div v-if="shipping && shipping.urgentSurcharge" class="flex justify-between">
+          <dt class="text-muted">當日急件加收</dt>
+          <dd class="num text-ink">NT$ {{ shipping.urgentSurcharge.toLocaleString() }}</dd>
         </div>
       </dl>
       <div class="flex justify-between items-end border-t border-mist mt-4 pt-4">
         <span class="font-serif-tc font-bold text-ink">總計</span>
-        <span class="num text-peony text-[28px] lg:text-[34px] leading-none">NT$ {{ (cartTotal + (cartTotal >= 500 ? 0 : 150)).toLocaleString() }}</span>
+        <span class="num text-peony text-[28px] lg:text-[34px] leading-none">{{ shipping ? 'NT$ ' + (cartTotal + shipping.shippingFee).toLocaleString() : '—' }}</span>
       </div>
       <button
         type="button"

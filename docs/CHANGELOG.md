@@ -4,7 +4,24 @@
 
 ---
 
-## [Unreleased] - 2026-10-29
+## [Unreleased] - 2026-11-10
+
+### Added
+
+- **配送費用計算**（`src/utils/shipping.js`）
+  - 宅配 120 元（商品小計滿 1,500 元免基本運費）、超商取貨 60 元（不適用免運）、偏遠地區 +200、當日急件 +250
+  - 偏遠地區由後端依收件地址關鍵字判定（澎湖、金門、連江／馬祖、綠島、蘭嶼、小琉球）
+  - `POST /api/orders` 新增選填 `shippingMethod`、`isUrgent`；回應新增 `subtotal`、`shipping_fee`、`shipping` 明細；`total_amount = subtotal + shipping_fee`
+  - 新增 `POST /api/shipping/quote` 運費試算 API
+  - `orders` 表新增 `subtotal`、`shipping_method`、`shipping_fee`、`is_remote_area`、`is_urgent`（含既有 DB migration）
+  - 綠界 `ItemName` 在有運費時附加「運費 x1」
+  - 新增 `tests/shipping.test.js` 單元測試與訂單運費整合測試；產生 `openapi.json`
+
+### Changed
+
+- 前台免運規則由「滿 500 免運、運費 150」改為新規則：結帳頁新增配送方式與當日急件選項並即時試算；購物車、首頁、商品頁、頁尾文案同步更新；訂單詳情（前台、後台）顯示運費明細
+
+## 2026-10-29
 
 ### Changed
 

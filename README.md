@@ -20,6 +20,7 @@
 ## 功能特色
 
 - **前台**：商品瀏覽、購物車（遊客 Session / 會員 JWT 雙模式）、線上結帳
+- **配送**：宅配 120 元（滿 1,500 免運）、超商取貨 60 元，偏遠地區 +200、當日急件 +250（`src/utils/shipping.js`）
 - **金流**：ECPay AIO 串接（信用卡、ATM、超商代碼），本地主動查詢付款結果
 - **後台**：商品管理（CRUD）、訂單管理、庫存追蹤
 - **認證**：JWT 身份驗證，7 天有效，防止 email 枚舉攻擊
@@ -78,8 +79,8 @@ node server.js
 ├── src/
 │   ├── database.js     # SQLite 初始化與 seed
 │   ├── middleware/     # authMiddleware、dualAuth
-│   ├── routes/         # API 路由（auth、products、cart、orders、payment）
-│   └── utils/          # ecpayHelper（CheckMacValue、AES 加密）
+│   ├── routes/         # API 路由（auth、products、cart、orders、payment、shipping）
+│   └── utils/          # ecpayHelper（CheckMacValue、AES 加密）、shipping（運費計算）
 ├── views/              # EJS 頁面模板
 ├── public/             # 靜態資源（CSS、JS）
 ├── tests/              # Vitest 整合測試

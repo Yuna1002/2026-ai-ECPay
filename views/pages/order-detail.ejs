@@ -76,7 +76,20 @@
           </li>
         </ul>
 
-        <div class="flex justify-between lg:justify-end items-end gap-6 pt-5 lg:pt-6">
+        <dl class="text-sm pt-5 lg:pt-6 space-y-2 lg:w-[360px] lg:ml-auto">
+          <div class="flex justify-between">
+            <dt class="text-muted">商品小計</dt>
+            <dd class="num text-ink">NT$ {{ (order.subtotal ?? order.total_amount).toLocaleString() }}</dd>
+          </div>
+          <div class="flex justify-between gap-4">
+            <dt class="text-muted">
+              運費（{{ order.shipping_method === 'convenience_store' ? '超商取貨' : '宅配' }}<template v-if="order.is_remote_area">・偏遠地區 +200</template><template v-if="order.is_urgent">・當日急件 +250</template>）
+            </dt>
+            <dd class="num text-ink shrink-0">{{ order.shipping_fee ? 'NT$ ' + order.shipping_fee.toLocaleString() : '免運' }}</dd>
+          </div>
+        </dl>
+
+        <div class="flex justify-between lg:justify-end items-end gap-6 pt-4 mt-4 border-t border-mist">
           <span class="font-serif-tc font-bold text-ink">總計</span>
           <span class="num text-peony text-[30px] lg:text-[40px] leading-none">NT$ {{ order.total_amount.toLocaleString() }}</span>
         </div>

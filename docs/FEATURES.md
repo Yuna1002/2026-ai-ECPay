@@ -11,6 +11,7 @@
 | 訂單建立與管理 | ✅ 完成 |
 | 模擬付款（供開發測試） | ✅ 完成 |
 | ECPay AIO 金流串接 | ✅ 完成 |
+| 配送費用計算（Shipping 模組） | ✅ 完成 |
 | 後台商品管理 | ✅ 完成 |
 | 後台訂單管理 | ✅ 完成 |
 
@@ -144,7 +145,7 @@
 
 訂單流程：加入購物車 → 建立訂單（需 JWT） → 模擬付款。建立訂單時，系統在單一 SQLite transaction 內完成四件事：
 
-1. 寫入 `orders` 表
+1. 寫入 `orders` 表（含商品小計、配送方式、運費與訂單總額）
 2. 將每個 cart item 寫入 `order_items`（快照商品名稱與價格）
 3. 扣減每個商品的 `products.stock`
 4. 清空該使用者的購物車（`DELETE FROM cart_items WHERE user_id = ?`）
@@ -157,32 +158,39 @@
 
 **必填欄位**：`recipientName`、`recipientEmail`（email 格式驗證）、`recipientAddress`
 
+**選填欄位**：
+- `shippingMethod`：`home_delivery`（預設）或 `convenience_store`
+- `isUrgent`：布林值，預設 `false`
+
 **業務邏輯**：
-1. 驗證必填欄位
+1. 驗證必填欄位、`shippingMethod` 合法值、`isUrgent` 為布林
 2. 讀取使用者 JWT 購物車（`user_id = req.user.userId`）
 3. 若購物車為空 → 400 CART_EMPTY
 4. 逐一檢查每個商品庫存，若有不足列出商品名稱 → 400 STOCK_INSUFFICIENT
-5. 計算 `total_amount = Σ(product_price × quantity)`
-6. 產生 `order_no`：`ORD-YYYYMMDD-XXXXX`（5 碼大寫 UUID 前綴）
-7. 執行 transaction（見上方說明）
+5. 計算 `subtotal = Σ(product_price × quantity)`
+6. 呼叫 `calculateShipping()`（`src/utils/shipping.js`）算出運費，`total_amount = subtotal + shipping_fee`
+7. 產生 `order_no`：`ORD-YYYYMMDD-XXXXX`（5 碼大寫 UUID 前綴）
+8. 執行 transaction（見上方說明）
+
+**回應 data**：`id`、`order_no`、`subtotal`、`shipping_fee`、`total_amount`、`shipping`（運費明細，見「配送費用計算」）、`status`、`items`、`created_at`
 
 **錯誤情境**：
 - 未認證 → 401 UNAUTHORIZED
 - 購物車為空 → 400 CART_EMPTY
 - 庫存不足 → 400 STOCK_INSUFFICIENT（附商品名稱）
-- 欄位缺失 → 400 VALIDATION_ERROR
+- 欄位缺失、`shippingMethod` 不合法、`isUrgent` 非布林 → 400 VALIDATION_ERROR
 
 ### GET /api/orders
 
 回傳**目前登入者自己的**訂單列表（`user_id = req.user.userId`），依 `created_at DESC` 排序。
 
-每筆訂單包含：id, order_no, total_amount, status, created_at（不含 items）。
+每筆訂單包含：id, order_no, subtotal, shipping_fee, total_amount, status, created_at（不含 items）。
 
 ### GET /api/orders/:id
 
 回傳訂單詳情，**限制只能查詢自己的訂單**（`WHERE id = ? AND user_id = ?`）。
 
-包含訂單主資訊 + `items` 陣列（含 product_name、product_price、quantity 等快照資料）。
+包含訂單主資訊（含 `subtotal`、`shipping_method`、`shipping_fee`、`is_remote_area`、`is_urgent`）+ `items` 陣列（含 product_name、product_price、quantity 等快照資料）。
 
 ### PATCH /api/orders/:id/pay
 
@@ -199,6 +207,55 @@
 - action 不在 ['success', 'fail'] → 400 VALIDATION_ERROR
 - 訂單不存在或非本人訂單 → 404 NOT_FOUND
 - 訂單 status 非 pending → 400 INVALID_STATUS
+
+---
+
+## 配送費用計算
+
+### 行為描述
+
+運費邏輯集中在 `src/utils/shipping.js`（純函式、無 DB 依賴，可獨立單元測試）。建立訂單時由後端依購物車小計重新計算，前端顯示的試算金額僅供參考。
+
+| 項目 | 金額 | 說明 |
+|------|------|------|
+| 宅配（`home_delivery`）基本運費 | 120 元 | 商品小計 **≥ 1,500 元** 免基本運費 |
+| 超商取貨（`convenience_store`） | 60 元 | 不是基本運費，**不適用**滿額免運 |
+| 偏遠地區附加費 | +200 元 | 兩種配送方式皆適用；不受滿額免運影響 |
+| 當日急件附加費 | +250 元 | 兩種配送方式皆適用；不受滿額免運影響 |
+
+`shipping_fee = 基本運費 + 偏遠附加費 + 急件附加費`；`total_amount = subtotal + shipping_fee`。
+
+**偏遠地區判定**：後端比對 `recipientAddress` 關鍵字（先將「台」正規化為「臺」）：澎湖、金門、連江、馬祖、綠島、蘭嶼、琉球鄉、小琉球。
+
+**計算範例**：
+
+| 情境 | 運費 |
+|------|------|
+| 宅配、小計 1,499 | 120 |
+| 宅配、小計 1,500 | 0 |
+| 超商、小計 2,000 | 60 |
+| 宅配、小計 1,000、澎湖、急件 | 120 + 200 + 250 = 570 |
+| 宅配、小計 1,500、蘭嶼、急件 | 0 + 200 + 250 = 450 |
+
+### 模組 API（`src/utils/shipping.js`）
+
+- `calculateShipping({ subtotal, shippingMethod, address, isUrgent })` → `{ shippingMethod, baseFee, isFreeShipping, isRemoteArea, remoteSurcharge, isUrgent, urgentSurcharge, shippingFee }`；`subtotal` 非非負整數或配送方式不合法時拋 `TypeError`
+- `isRemoteArea(address)`、`isValidShippingMethod(method)`
+- 常數：`SHIPPING_METHODS`、`HOME_DELIVERY_FEE`、`CONVENIENCE_STORE_FEE`、`FREE_SHIPPING_THRESHOLD`、`REMOTE_AREA_SURCHARGE`、`URGENT_SURCHARGE`、`REMOTE_AREA_KEYWORDS`
+
+### POST /api/shipping/quote
+
+運費試算，不需認證，供結帳頁即時顯示運費明細。
+
+**欄位**：`subtotal`（必填，非負整數）、`shippingMethod`、`recipientAddress`、`isUrgent`
+
+**回應 data**：運費明細 + `subtotal` + `totalAmount`
+
+**錯誤情境**：任一欄位格式錯誤 → 400 VALIDATION_ERROR
+
+### 與 ECPay 的整合
+
+`buildAioCheckout()` 使用 `orders.total_amount`（已含運費）作為 `TotalAmount`；運費 > 0 時 `ItemName` 會附加「運費 x1」，讓綠界付款頁明細與金額一致。
 
 ---
 
