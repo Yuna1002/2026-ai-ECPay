@@ -21,8 +21,16 @@ npm run dev:css
 # 單獨 build CSS
 npm run css:build
 
-# 執行所有測試
+# 執行 unit + integration 測試（記憶體 SQLite，不動 database.sqlite）
 npm test
+npm run test:unit
+npm run test:integration
+
+# E2E（需先啟動 server 於 localhost:3001；會走綠界測試環境付款並寫入 database.sqlite）
+npm run test:e2e
+
+# 產生 openapi.json 並轉成 Postman Collection（postman/）
+npm run postman
 
 # 產生 OpenAPI 規格檔
 npm run openapi

@@ -87,7 +87,10 @@ function buildAioCheckout(order, items, baseUrl) {
     ReturnURL:         `${baseUrl}/api/payments/ecpay-notify`,
     OrderResultURL:    `${baseUrl}/api/payments/ecpay-result`,
     ClientBackURL:     `${baseUrl}/orders/${order.id}`,
-    ChoosePayment:     'Credit',
+    // 開放信用卡、網路 ATM 等「即時付款」方式；隱藏非即時付款（ATM 虛擬帳號、超商代碼／條碼等），
+    // 因為 /ecpay-result 以 QueryTradeInfo 的 TradeStatus 判定成敗，非即時付款在此時尚未完成會被誤判為失敗
+    ChoosePayment:     'ALL',
+    IgnorePayment:     'ATM#CVS#BARCODE#TWQR#BNPL#WeiXin',
     EncryptType:       '1',
   };
   params.CheckMacValue = computeCheckMacValue(params);

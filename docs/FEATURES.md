@@ -263,13 +263,13 @@
 
 ### 行為描述
 
-使用 ECPay 全方位金流（AIO）讓使用者以信用卡付款。由於本專案運行於本地端，無法接收 ECPay 的 ReturnURL 伺服器回呼，付款結果改由後端主動呼叫 `QueryTradeInfo/V5` 驗證。
+使用 ECPay 全方位金流（AIO）讓使用者以信用卡或網路 ATM 付款（`ChoosePayment=ALL`，以 `IgnorePayment` 隱藏 ATM 虛擬帳號、超商代碼／條碼等非即時付款，因為 `/ecpay-result` 以 `TradeStatus` 判定成敗，非即時付款會被誤判為失敗）。由於本專案運行於本地端，無法接收 ECPay 的 ReturnURL 伺服器回呼，付款結果改由後端主動呼叫 `QueryTradeInfo/V5` 驗證。
 
 **完整付款流程**：
 1. 使用者在訂單詳情頁點擊「前往 ECPay 付款」
 2. 前端呼叫 `POST /api/payments/ecpay-checkout`，後端計算 CheckMacValue 並回傳所有表單參數
 3. 前端以 DOM API 動態建立 `<form>` 並呼叫 `form.submit()`，瀏覽器跳轉至 ECPay 付款頁
-4. 使用者在 ECPay 頁面完成付款（測試卡：`4311-9522-2222-2222`，3DS 驗證碼：`1234`）
+4. 使用者在 ECPay 頁面完成付款（測試卡：`4311-9522-2222-2222`，3DS 驗證碼：`1234`；或選網路ATM →「台灣土地銀行」→ 模擬頁按 `Save`）
 5. ECPay 將瀏覽器 POST 重導向到 `OrderResultURL`（`/api/payments/ecpay-result`）
 6. 後端從 POST body 取出 `MerchantTradeNo`，呼叫 QueryTradeInfo 主動驗證付款狀態
 7. 確認 `TradeStatus === '1'` 後，將 `orders.status` 更新為 `paid`，並記錄 `orders.ecpay_trade_no`

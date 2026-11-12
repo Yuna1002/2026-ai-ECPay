@@ -3,7 +3,8 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 
-const dbPath = path.join(__dirname, '..', 'database.sqlite');
+// 測試時以 DB_PATH 指定獨立資料庫（例如 ':memory:'），避免動到正式的 database.sqlite
+const dbPath = process.env.DB_PATH || path.join(__dirname, '..', 'database.sqlite');
 const db = new Database(dbPath);
 
 // Enable WAL mode for better performance

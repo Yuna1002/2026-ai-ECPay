@@ -47,3 +47,12 @@ test-results/
 
 # 第三方 ECPay 官方 skill（獨立 git repo，不納入版控）
 .claude/skills/ecpay/
+
+# Playwright 測試報告
+playwright-report/
+
+# 測試與 Postman 衍生物（皆可由指令重新產生，不納入版控）
+# npm run test:e2e 產生的截圖
+tests/e2e/screenshots/
+# npm run postman 產生的 Collection
+postman/

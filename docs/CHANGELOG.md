@@ -4,7 +4,22 @@
 
 ---
 
-## [Unreleased] - 2026-11-10
+## [Unreleased] - 2026-11-12
+
+### Added
+
+- **測試流程**
+  - `npm run test:unit`／`npm run test:integration`：Vitest 改用記憶體 SQLite（`DB_PATH=:memory:`），不再寫入 `database.sqlite`
+  - `tests/integration/checkout.test.js`：登入 → 商品 → 購物車 → 建立訂單，驗證 DB 寫入、運費、總額、庫存、購物車清空，以及失敗時交易回滾不扣庫存
+  - `npm run test:e2e`：Playwright 對執行中的 `localhost:3001` 跑完整購物與綠界網路 ATM（台灣土地銀行）付款流程，輸出付款成功截圖
+  - `npm run postman`：由 `openapi.json` 產生 `postman/flower-shop.postman_collection.json`（`{{baseUrl}}`、登入自動存 `{{token}}`、Bearer 自動帶入）
+
+### Changed
+
+- `src/database.js` 支援以 `DB_PATH` 環境變數指定資料庫路徑（預設仍為 `database.sqlite`）
+- 綠界 AIO `ChoosePayment` 由 `Credit` 改為 `ALL`，搭配 `IgnorePayment=ATM#CVS#BARCODE#TWQR#BNPL#WeiXin`，開放網路 ATM 付款
+
+## 2026-11-10
 
 ### Added
 
