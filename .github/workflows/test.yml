@@ -1,0 +1,44 @@
+# 自動化測試：程式碼推送或發 PR 時執行 Unit 與 Integration 測試
+# 兩者皆使用記憶體 SQLite（DB_PATH=:memory:），且測試所需環境變數已寫在 vitest config 內，
+# 因此不需要 .env、不需啟動 server，也不執行 Playwright E2E。
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# 同一分支有新的推送時，取消尚在執行的舊 run
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Unit & Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Run integration tests
+        run: npm run test:integration
